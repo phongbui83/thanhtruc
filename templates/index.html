@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đối chiếu file Excel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f7f7f7; }
+        .container { max-width: 700px; margin: 40px auto; background: #fff; padding: 40px 50px; border-radius: 14px; box-shadow: 0 2px 12px #bbb; }
+        h2 { color: #1976d2; text-align: center; margin-bottom: 30px; }
+        .form-section { margin-bottom: 30px; padding: 20px; border: 1px solid #1976d2; border-radius: 8px; background: #f0f6ff; }
+        h3 { color: #125ea2; margin-top: 0; }
+        label { display: block; margin-top: 12px; font-weight: 500; }
+        input[type="text"], input[type="number"] { width: 320px; padding: 7px; border-radius: 4px; border: 1px solid #bdbdbd; margin-top: 4px; }
+        input[type="file"] { margin-top: 8px; }
+        button[type="submit"] { background: #1976d2; color: #fff; padding: 12px 30px; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; transition: background 0.2s; }
+        button[type="submit"]:hover { background: #125ea2; }
+        .note { color: #d32f2f; font-size: 15px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Đối chiếu file Excel giao dịch viên</h2>
+    <form action="/compare" method="post" enctype="multipart/form-data">
+        <div class="form-section">
+            <h3>File 1: File xuất ra từ KRX</h3>
+            <label>Chọn file 1: <input type="file" name="file1" required></label>
+            <label>Tên cột chứa ClientID (mã CXXXXX): <input type="text" name="clientid_col1" required placeholder="Ví dụ: E hoặc tên cột"></label>
+            <label>Tên cột chứa Exercise Qty: <input type="text" name="qty_col1" required placeholder="Ví dụ: F hoặc tên cột"></label>
+            <label>Số dòng bỏ qua đầu file (skiprows): <input type="number" name="skiprows1" value="0" min="0" required></label>
+        </div>
+        <div class="form-section">
+            <h3>File 2: Báo cáo gửi VSD</h3>
+            <label>Chọn file 2: <input type="file" name="file2" required></label>
+            <label>Tên cột chứa tài khoản giao dịch: <input type="text" name="acc_col2" required placeholder="Ví dụ: H hoặc tên cột"></label>
+            <label>Tên cột chứa số lượng đặt mua: <input type="text" name="qty_col2" required placeholder="Ví dụ: J hoặc tên cột"></label>
+            <label>Số dòng bỏ qua đầu file (skiprows): <input type="number" name="skiprows2" value="0" min="0" required></label>
+        </div>
+        <label style="font-weight:600; color:#1976d2; margin-top:18px;">Tỷ lệ chuyển đổi (chia Exercise Qty cho): <input type="number" name="ty_le" value="8" min="1" required> <span style="font-weight:400; color:#444;">(Ví dụ: 8, 10, 20...)</span></label>
+        <button type="submit">So sánh và xuất báo cáo</button>
+        <div class="note">* Bạn có thể nhập ký tự cột (A, B, C, ...) hoặc tên cột thực tế.<br>* Nếu không chắc chắn, hãy mở file Excel kiểm tra tên cột hoặc vị trí cột.</div>
+    </form>
+</div>
+<!-- Fireworks effect -->
+<canvas id="fireworks-left" width="400" height="800" style="position:fixed;left:0;top:0;pointer-events:none;z-index:999;"></canvas>
+<canvas id="fireworks-right" width="400" height="800" style="position:fixed;right:0;top:0;pointer-events:none;z-index:999;"></canvas>
+
+<!-- Footer Github link -->
+<div style="width:100%;text-align:center;margin-top:40px;">
+    <a href="https://github.com/phongbui83/thanhtruc" target="_blank" style="display:inline-block;background:#1976d2;color:#fff;padding:12px 32px;border-radius:8px;font-size:18px;font-weight:bold;text-decoration:none;box-shadow:0 2px 8px #bbb;">Download mã nguồn</a>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/fireworks-js@2.x/dist/index.umd.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function startFireworks() {
+        // Đảm bảo thư viện đã load xong
+        if (window['fireworks-js'] && window['fireworks-js'].default) {
+            const FireworksClass = window['fireworks-js'].default;
+
+            // Fireworks for left
+            const left = document.getElementById('fireworks-left');
+            const fwLeft = new FireworksClass(left, {
+                hue: { min: 0, max: 360 },
+                rocketsPoint: 0.2,
+                speed: 2,
+                acceleration: 1.05,
+                friction: 0.97,
+                gravity: 1.5,
+                particles: 60,
+                trace: 3,
+                explosion: 6,
+                autoresize: true,
+                brightness: { min: 50, max: 80 },
+                decay: { min: 0.015, max: 0.03 },
+                mouse: { click: false, move: false, max: 0 }
+            });
+            fwLeft.start();
+
+            // Fireworks for right
+            const right = document.getElementById('fireworks-right');
+            const fwRight = new FireworksClass(right, {
+                hue: { min: 0, max: 360 },
+                rocketsPoint: 0.8,
+                speed: 2,
+                acceleration: 1.05,
+                friction: 0.97,
+                gravity: 1.5,
+                particles: 60,
+                trace: 3,
+                explosion: 6,
+                autoresize: true,
+                brightness: { min: 50, max: 80 },
+                decay: { min: 0.015, max: 0.03 },
+                mouse: { click: false, move: false, max: 0 }
+            });
+            fwRight.start();
+        } else {
+            // Nếu chưa load xong, thử lại sau 100ms
+            setTimeout(startFireworks, 100);
+        }
+    }
+    startFireworks();
+});
+</script>
+</body>
+</html> 
